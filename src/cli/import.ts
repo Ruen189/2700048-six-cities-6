@@ -1,12 +1,22 @@
 import { createReadStream } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { resolve } from 'node:path';
+import mongoose from 'mongoose';
 import chalk from 'chalk';
 
 import { parseOfferFromTSVLine } from './tsv.js';
+import { UserModel } from '../modules/user/user.model.js';
+import { OfferModel } from '../modules/offer/offer.model.js';
 
-export async function importFromTSV(filePath: string): Promise<void> {
+export async function importFromTSV(filePath: string, dbUri: string): Promise<void> {
   const absolutePath = resolve(process.cwd(), filePath);
+
+  // eslint-disable-next-line no-console
+  console.log(chalk.bold(`Подключение к базе данных: ${chalk.underline(dbUri)}`));
+  await mongoose.connect(dbUri);
+  // eslint-disable-next-line no-console
+  console.log(chalk.green('Соединение с MongoDB установлено.'));
+
   const stream = createReadStream(absolutePath, { encoding: 'utf-8' });
   const rl = createInterface({ input: stream, crlfDelay: Infinity });
 
@@ -24,16 +34,51 @@ export async function importFromTSV(filePath: string): Promise<void> {
         continue;
       }
 
-      const offer = parseOfferFromTSVLine(trimmed, lineNumber);
+      const parsed = parseOfferFromTSVLine(trimmed, lineNumber);
+
+      const user = await UserModel.findOneAndUpdate(
+        { email: parsed.host.email },
+        {
+          $setOnInsert: {
+            name: parsed.host.name,
+            email: parsed.host.email,
+            avatarUrl: parsed.host.avatarUrl,
+            password: parsed.authorPassword,
+            type: parsed.host.type,
+          },
+        },
+        { upsert: true, new: true }
+      ).exec();
+
+      await OfferModel.create({
+        title: parsed.title,
+        description: parsed.description,
+        postDate: parsed.postDate,
+        city: parsed.city,
+        previewImage: parsed.previewImage,
+        images: parsed.images,
+        isPremium: parsed.isPremium,
+        isFavorite: parsed.isFavorite,
+        rating: parsed.rating,
+        type: parsed.type,
+        bedrooms: parsed.bedrooms,
+        maxAdults: parsed.maxAdults,
+        price: parsed.price,
+        goods: parsed.goods,
+        host: user._id,
+        latitude: parsed.location.latitude,
+        longitude: parsed.location.longitude,
+      });
+
       importedCount += 1;
 
       // eslint-disable-next-line no-console
       console.log(
         chalk.green('OK'),
-        chalk.bold(offer.title),
-        chalk.dim(`(${offer.city})`),
-        chalk.yellow(`${offer.price}€`),
-        chalk.dim(`host: ${offer.host.email}`)
+        chalk.bold(parsed.title),
+        chalk.dim(`(${parsed.city})`),
+        chalk.yellow(`${parsed.price}€`),
+        chalk.dim(`host: ${parsed.host.email}`)
       );
     }
 
@@ -44,6 +89,7 @@ export async function importFromTSV(filePath: string): Promise<void> {
     // eslint-disable-next-line no-console
     console.error(chalk.bold.red('Ошибка импорта:'), chalk.red(message));
     process.exitCode = 1;
+  } finally {
+    await mongoose.disconnect();
   }
 }
-

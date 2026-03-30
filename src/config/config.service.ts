@@ -21,6 +21,31 @@ const configSchema: Schema<RestConfig> = {
     env: 'DB_HOST',
     default: '127.0.0.1',
   },
+  dbPort: {
+    doc: 'Database port',
+    format: 'port',
+    env: 'DB_PORT',
+    default: 27017,
+  },
+  dbName: {
+    doc: 'Database name',
+    format: String,
+    env: 'DB_NAME',
+    default: 'six-cities',
+  },
+  dbUser: {
+    doc: 'Database user name',
+    format: String,
+    env: 'DB_USER',
+    default: '',
+  },
+  dbPassword: {
+    doc: 'Database user password',
+    format: String,
+    env: 'DB_PASSWORD',
+    default: '',
+    sensitive: true,
+  },
   salt: {
     doc: 'Password hash salt',
     format: String,

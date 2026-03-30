@@ -6,6 +6,12 @@ import type { ConfigInterface } from './config/config.interface.js';
 import type { RestConfig } from './config/rest.config.js';
 import { PinoLogger } from './logger/pino.logger.js';
 import type { LoggerInterface } from './logger/logger.interface.js';
+import { MongoClient } from './db/mongo.client.js';
+import type { DatabaseClientInterface } from './db/db-client.interface.js';
+import { UserService } from './modules/user/user.service.js';
+import type { UserServiceInterface } from './modules/user/user-service.interface.js';
+import { OfferService } from './modules/offer/offer.service.js';
+import type { OfferServiceInterface } from './modules/offer/offer-service.interface.js';
 import { RestServiceToken } from './rest-service.tokens.js';
 
 const container = new Container();
@@ -13,6 +19,8 @@ const container = new Container();
 container.bind<LoggerInterface>(RestServiceToken.Logger).to(PinoLogger).inSingletonScope();
 container.bind<ConfigInterface<RestConfig>>(RestServiceToken.Config).to(ConfigService).inSingletonScope();
 container.bind<Application>(RestServiceToken.Application).to(Application).inSingletonScope();
+container.bind<DatabaseClientInterface>(RestServiceToken.DatabaseClient).to(MongoClient).inSingletonScope();
+container.bind<UserServiceInterface>(RestServiceToken.UserService).to(UserService).inSingletonScope();
+container.bind<OfferServiceInterface>(RestServiceToken.OfferService).to(OfferService).inSingletonScope();
 
 export { container };
-
