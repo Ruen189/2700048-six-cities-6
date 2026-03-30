@@ -1,8 +1,8 @@
 import { inject, injectable } from 'inversify';
+import type mongoose from 'mongoose';
 
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
-import { UserModel } from './user.model.js';
 import type { UserDocument } from './user.model.js';
 import type { UserServiceInterface } from './user-service.interface.js';
 
@@ -17,21 +17,22 @@ type CreateUserDto = {
 @injectable()
 export class UserService implements UserServiceInterface {
   constructor(
-    @inject(RestServiceToken.Logger) private readonly logger: LoggerInterface
+    @inject(RestServiceToken.Logger) private readonly logger: LoggerInterface,
+    @inject(RestServiceToken.UserModel) private readonly userModel: mongoose.Model<UserDocument>
   ) {}
 
   public async create(dto: CreateUserDto): Promise<UserDocument> {
-    const user = await UserModel.create(dto);
+    const user = await this.userModel.create(dto);
     this.logger.info('New user created', { email: dto.email });
     return user;
   }
 
   public async findById(id: string): Promise<UserDocument | null> {
-    return UserModel.findById(id).exec();
+    return this.userModel.findById(id).exec();
   }
 
   public async findByEmail(email: string): Promise<UserDocument | null> {
-    return UserModel.findOne({ email }).exec();
+    return this.userModel.findOne({ email }).exec();
   }
 
   public async findOrCreate(dto: CreateUserDto): Promise<UserDocument> {
