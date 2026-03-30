@@ -5,14 +5,7 @@ import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { UserDocument } from './user.model.js';
 import type { UserServiceInterface } from './user-service.interface.js';
-
-type CreateUserDto = {
-  name: string;
-  email: string;
-  password: string;
-  type: string;
-  avatarUrl?: string;
-};
+import type { CreateUserDto } from './dto/create-user.dto.js';
 
 @injectable()
 export class UserService implements UserServiceInterface {
@@ -41,5 +34,33 @@ export class UserService implements UserServiceInterface {
       return existing;
     }
     return this.create(dto);
+  }
+
+  public async addToFavorites(userId: string, offerId: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(
+        userId,
+        { $addToSet: { favorites: offerId } },
+        { new: true }
+      )
+      .exec();
+  }
+
+  public async removeFromFavorites(userId: string, offerId: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(
+        userId,
+        { $pull: { favorites: offerId } },
+        { new: true }
+      )
+      .exec();
+  }
+
+  public async findFavorites(userId: string): Promise<string[]> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      return [];
+    }
+    return user.favorites.map((id) => id.toString());
   }
 }

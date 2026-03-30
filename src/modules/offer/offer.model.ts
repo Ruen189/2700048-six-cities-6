@@ -11,7 +11,6 @@ export interface OfferDocument extends mongoose.Document {
   previewImage: string;
   images: string[];
   isPremium: boolean;
-  isFavorite: boolean;
   rating: number;
   type: OfferType;
   bedrooms: number;
@@ -62,16 +61,9 @@ const offerSchema = new mongoose.Schema(
       required: true,
       default: false,
     },
-    isFavorite: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
     rating: {
       type: Number,
-      required: true,
-      min: 1,
-      max: 5,
+      default: 0,
     },
     type: {
       type: String,

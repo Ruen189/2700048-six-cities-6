@@ -7,5 +7,6 @@ export const RestServiceToken = {
   UserService: Symbol('UserService'),
   OfferModel: Symbol('OfferModel'),
   OfferService: Symbol('OfferService'),
+  CommentModel: Symbol('CommentModel'),
+  CommentService: Symbol('CommentService'),
 } as const;
-
