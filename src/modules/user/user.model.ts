@@ -9,6 +9,7 @@ export interface UserDocument extends mongoose.Document {
   avatarUrl?: string;
   password: string;
   type: UserType;
+  favorites: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +41,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [...USER_TYPES],
+    },
+    favorites: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Offer',
+      default: [],
     },
   },
   { timestamps: true }

@@ -17,6 +17,10 @@ import { OfferModel } from './modules/offer/offer.model.js';
 import type { OfferDocument } from './modules/offer/offer.model.js';
 import { OfferService } from './modules/offer/offer.service.js';
 import type { OfferServiceInterface } from './modules/offer/offer-service.interface.js';
+import { CommentModel } from './modules/comment/comment.model.js';
+import type { CommentDocument } from './modules/comment/comment.model.js';
+import { CommentService } from './modules/comment/comment.service.js';
+import type { CommentServiceInterface } from './modules/comment/comment-service.interface.js';
 import { RestServiceToken } from './rest-service.tokens.js';
 
 const container = new Container();
@@ -31,5 +35,8 @@ container.bind<UserServiceInterface>(RestServiceToken.UserService).to(UserServic
 
 container.bind<mongoose.Model<OfferDocument>>(RestServiceToken.OfferModel).toConstantValue(OfferModel);
 container.bind<OfferServiceInterface>(RestServiceToken.OfferService).to(OfferService).inSingletonScope();
+
+container.bind<mongoose.Model<CommentDocument>>(RestServiceToken.CommentModel).toConstantValue(CommentModel);
+container.bind<CommentServiceInterface>(RestServiceToken.CommentService).to(CommentService).inSingletonScope();
 
 export { container };

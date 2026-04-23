@@ -58,8 +58,6 @@ export async function importFromTSV(filePath: string, dbUri: string): Promise<vo
         previewImage: parsed.previewImage,
         images: parsed.images,
         isPremium: parsed.isPremium,
-        isFavorite: parsed.isFavorite,
-        rating: parsed.rating,
         type: parsed.type,
         bedrooms: parsed.bedrooms,
         maxAdults: parsed.maxAdults,

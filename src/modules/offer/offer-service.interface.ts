@@ -1,26 +1,14 @@
 import type { OfferDocument } from './offer.model.js';
-
-export type CreateOfferDto = {
-  title: string;
-  description: string;
-  postDate: Date;
-  city: string;
-  previewImage: string;
-  images: string[];
-  isPremium: boolean;
-  isFavorite: boolean;
-  rating: number;
-  type: string;
-  bedrooms: number;
-  maxAdults: number;
-  price: number;
-  goods: string[];
-  host: string;
-  latitude: number;
-  longitude: number;
-};
+import type { CreateOfferDto } from './dto/create-offer.dto.js';
+import type { UpdateOfferDto } from './dto/update-offer.dto.js';
 
 export interface OfferServiceInterface {
   create(dto: CreateOfferDto): Promise<OfferDocument>;
   findById(id: string): Promise<OfferDocument | null>;
+  find(limit?: number): Promise<OfferDocument[]>;
+  updateById(id: string, dto: UpdateOfferDto): Promise<OfferDocument | null>;
+  deleteById(id: string): Promise<OfferDocument | null>;
+  findPremiumByCity(city: string, limit?: number): Promise<OfferDocument[]>;
+  exists(id: string): Promise<boolean>;
+  updateRatingAndCommentCount(offerId: string): Promise<void>;
 }
