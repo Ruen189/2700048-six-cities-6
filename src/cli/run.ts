@@ -21,15 +21,16 @@ export async function runCli(argv: string[] = process.argv): Promise<void> {
   const importIndex = args.indexOf('--import');
   if (importIndex !== -1) {
     const filePath = args[importIndex + 1];
-    if (!filePath) {
+    const dbUri = args[importIndex + 2];
+    if (!filePath || !dbUri) {
       // eslint-disable-next-line no-console
-      console.error(chalk.red('Не указан путь к TSV-файлу для --import.'));
+      console.error(chalk.red('Некорректные аргументы для --import. Ожидается: --import <filepath> <db_uri>.'));
       printHelp();
       process.exitCode = 1;
       return;
     }
 
-    await importFromTSV(filePath);
+    await importFromTSV(filePath, dbUri);
     return;
   }
 

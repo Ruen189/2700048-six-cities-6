@@ -11,3 +11,4 @@ coverage
 *.log
 specification.txt
 .env
+/.42c/

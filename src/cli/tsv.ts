@@ -1,6 +1,10 @@
 import type { Offer } from '../types.js';
 import { TSV_COLUMNS_COUNT } from './constants.js';
 
+export type ParsedTSVOffer = Offer & {
+  authorPassword: string;
+};
+
 function parseBoolean(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   if (normalized === 'true') {
@@ -19,7 +23,7 @@ function parseStringList(value: string): string[] {
     .filter(Boolean);
 }
 
-export function parseOfferFromTSVLine(line: string, lineNumber: number): Offer {
+export function parseOfferFromTSVLine(line: string, lineNumber: number): ParsedTSVOffer {
   const columns = line.split('\t');
   if (columns.length !== TSV_COLUMNS_COUNT) {
     throw new Error(
@@ -45,7 +49,7 @@ export function parseOfferFromTSVLine(line: string, lineNumber: number): Offer {
     authorName,
     authorEmail,
     authorAvatarUrl,
-    ,
+    authorPassword,
     authorType,
     latitudeRaw,
     longitudeRaw,
@@ -63,7 +67,7 @@ export function parseOfferFromTSVLine(line: string, lineNumber: number): Offer {
     throw new Error(`Некорректная дата публикации (строка ${lineNumber}).`);
   }
 
-  const offer: Offer = {
+  return {
     title,
     description,
     postDate,
@@ -84,12 +88,10 @@ export function parseOfferFromTSVLine(line: string, lineNumber: number): Offer {
       avatarUrl: authorAvatarUrl || undefined,
       type: authorType as Offer['host']['type'],
     },
+    authorPassword,
     location: {
       latitude,
       longitude,
     },
   };
-
-  return offer;
 }
-
