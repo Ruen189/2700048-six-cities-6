@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { AnonymousOnlyMiddleware } from '../../rest/middleware/anonymous-only.middleware.js';
 import { PrivateRouteMiddleware } from '../../rest/middleware/private-route.middleware.js';
 import { UploadFileMiddleware } from '../../rest/middleware/upload-file.middleware.js';
 import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
@@ -38,13 +39,13 @@ export class UserController extends Controller {
       path: '/register',
       method: HttpMethod.Post,
       handler: this.create,
-      middlewares: [new ValidateDtoMiddleware(CreateUserDto)],
+      middlewares: [new AnonymousOnlyMiddleware(), new ValidateDtoMiddleware(CreateUserDto)],
     });
     this.addRoute({
       path: '/login',
       method: HttpMethod.Post,
       handler: this.login,
-      middlewares: [new ValidateDtoMiddleware(LoginUserDto)],
+      middlewares: [new AnonymousOnlyMiddleware(), new ValidateDtoMiddleware(LoginUserDto)],
     });
     this.addRoute({
       path: '/login',

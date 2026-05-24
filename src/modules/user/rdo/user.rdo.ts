@@ -1,5 +1,7 @@
 import { Expose, Transform } from 'class-transformer';
 
+export const DEFAULT_AVATAR_URL = '/static/default-avatar.svg';
+
 export class UserRdo {
   @Expose()
   @Transform(({ obj }) => obj._id?.toString() ?? obj.id)
@@ -12,7 +14,8 @@ export class UserRdo {
   public email!: string;
 
   @Expose()
-  public avatarUrl?: string;
+  @Transform(({ obj }) => obj.avatarUrl || DEFAULT_AVATAR_URL)
+  public avatarUrl!: string;
 
   @Expose()
   public type!: string;
