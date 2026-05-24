@@ -21,7 +21,13 @@ export class OfferService implements OfferServiceInterface {
   ) {}
 
   public async create(dto: CreateOfferDto): Promise<OfferDocument> {
-    const offer = await this.offerModel.create(dto);
+    const { location, ...rest } = dto;
+    const offer = await this.offerModel.create({
+      ...rest,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      postDate: new Date(),
+    });
     this.logger.info('New offer created', { title: dto.title });
     return offer;
   }
@@ -43,8 +49,15 @@ export class OfferService implements OfferServiceInterface {
   }
 
   public async updateById(id: string, dto: UpdateOfferDto): Promise<OfferDocument | null> {
+    const { location, ...rest } = dto;
+    const update: Record<string, unknown> = { ...rest };
+    if (location) {
+      update.latitude = location.latitude;
+      update.longitude = location.longitude;
+    }
+
     return this.offerModel
-      .findByIdAndUpdate(id, dto, { new: true })
+      .findByIdAndUpdate(id, update, { new: true })
       .populate('host')
       .exec();
   }

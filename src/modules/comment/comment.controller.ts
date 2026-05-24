@@ -5,20 +5,17 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
+import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { CommentServiceInterface } from './comment-service.interface.js';
 import type { OfferServiceInterface } from '../offer/offer-service.interface.js';
+import { CreateCommentDto } from './dto/create-comment.dto.js';
 import { CommentRdo } from './rdo/comment.rdo.js';
 
 type OfferIdParam = { offerId: string };
-
-type CreateCommentRequest = {
-  text: string;
-  rating: number;
-  author: string;
-};
 
 @injectable()
 export class CommentController extends Controller {
@@ -31,8 +28,21 @@ export class CommentController extends Controller {
 
     this.logger.info('Register routes for CommentController');
 
-    this.addRoute({ path: '/:offerId/comments', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/:offerId/comments', method: HttpMethod.Post, handler: this.create });
+    this.addRoute({
+      path: '/:offerId/comments',
+      method: HttpMethod.Get,
+      handler: this.index,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+    });
+    this.addRoute({
+      path: '/:offerId/comments',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateDtoMiddleware(CreateCommentDto),
+      ],
+    });
   }
 
   public async index(req: Request<OfferIdParam>, res: Response): Promise<void> {
@@ -47,7 +57,7 @@ export class CommentController extends Controller {
   }
 
   public async create(
-    req: Request<OfferIdParam, Record<string, unknown>, CreateCommentRequest>,
+    req: Request<OfferIdParam, Record<string, unknown>, CreateCommentDto>,
     res: Response
   ): Promise<void> {
     const { offerId } = req.params;
@@ -56,7 +66,7 @@ export class CommentController extends Controller {
       throw new HttpError(StatusCodes.NOT_FOUND, `Offer with id «${offerId}» not found.`);
     }
 
-    const comment = await this.commentService.create({ ...req.body, offerId });
+    const comment = await this.commentService.create(req.body, offerId);
     this.created(res, fillDTO(CommentRdo, comment.toObject()));
   }
 }

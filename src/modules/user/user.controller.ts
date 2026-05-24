@@ -5,12 +5,13 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { UserServiceInterface } from './user-service.interface.js';
-import type { CreateUserDto } from './dto/create-user.dto.js';
-import type { LoginUserDto } from './dto/login-user.dto.js';
+import { CreateUserDto } from './dto/create-user.dto.js';
+import { LoginUserDto } from './dto/login-user.dto.js';
 import { UserRdo } from './rdo/user.rdo.js';
 
 @injectable()
@@ -23,8 +24,18 @@ export class UserController extends Controller {
 
     this.logger.info('Register routes for UserController');
 
-    this.addRoute({ path: '/register', method: HttpMethod.Post, handler: this.create });
-    this.addRoute({ path: '/login', method: HttpMethod.Post, handler: this.login });
+    this.addRoute({
+      path: '/register',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [new ValidateDtoMiddleware(CreateUserDto)],
+    });
+    this.addRoute({
+      path: '/login',
+      method: HttpMethod.Post,
+      handler: this.login,
+      middlewares: [new ValidateDtoMiddleware(LoginUserDto)],
+    });
     this.addRoute({ path: '/login', method: HttpMethod.Get, handler: this.checkAuthenticate });
     this.addRoute({ path: '/logout', method: HttpMethod.Delete, handler: this.logout });
   }
