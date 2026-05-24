@@ -7,5 +7,7 @@ export type RestConfig = {
   dbPassword: string;
   salt: string;
   uploadDirectory: string;
+  jwtSecret: string;
+  jwtExpiresIn: string;
 };
 

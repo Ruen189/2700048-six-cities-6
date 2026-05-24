@@ -19,4 +19,6 @@ export const RestServiceToken = {
   FavoriteController: Symbol('FavoriteController'),
 
   ExceptionFilter: Symbol('ExceptionFilter'),
+  TokenService: Symbol('TokenService'),
+  AuthenticateMiddleware: Symbol('AuthenticateMiddleware'),
 } as const;

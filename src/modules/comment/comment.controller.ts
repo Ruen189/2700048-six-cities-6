@@ -4,9 +4,11 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { DocumentExistsMiddleware } from '../../rest/middleware/document-exists.middleware.js';
+import { PrivateRouteMiddleware } from '../../rest/middleware/private-route.middleware.js';
 import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
 import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
+import { requireAuth } from '../../rest/helpers/auth.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { CommentServiceInterface } from './comment-service.interface.js';
@@ -41,6 +43,7 @@ export class CommentController extends Controller {
       method: HttpMethod.Post,
       handler: this.create,
       middlewares: [
+        new PrivateRouteMiddleware(),
         new ValidateObjectIdMiddleware('offerId'),
         new ValidateDtoMiddleware(CreateCommentDto),
         new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
@@ -57,7 +60,8 @@ export class CommentController extends Controller {
     req: Request<OfferIdParam, Record<string, unknown>, CreateCommentDto>,
     res: Response
   ): Promise<void> {
-    const comment = await this.commentService.create(req.body, req.params.offerId);
+    const { id: authorId } = requireAuth(req);
+    const comment = await this.commentService.create(req.body, req.params.offerId, authorId);
     this.created(res, fillDTO(CommentRdo, comment.toObject()));
   }
 }

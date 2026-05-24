@@ -7,6 +7,7 @@ export interface UserServiceInterface {
   findByEmail(email: string): Promise<UserDocument | null>;
   findOrCreate(dto: CreateUserDto): Promise<UserDocument>;
   exists(documentId: string): Promise<boolean>;
+  verifyPassword(user: UserDocument, plainPassword: string): boolean;
   setAvatarPath(userId: string, avatarPath: string): Promise<UserDocument | null>;
   addToFavorites(userId: string, offerId: string): Promise<UserDocument | null>;
   removeFromFavorites(userId: string, offerId: string): Promise<UserDocument | null>;

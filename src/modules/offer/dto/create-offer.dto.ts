@@ -8,7 +8,6 @@ import {
   IsInt,
   IsLatitude,
   IsLongitude,
-  IsMongoId,
   IsString,
   Max,
   MaxLength,
@@ -78,9 +77,6 @@ export class CreateOfferDto {
     message: `goods items must be one of: ${FACILITIES.join(', ')}`,
   })
   public goods!: string[];
-
-  @IsMongoId({ message: 'host must be a valid ObjectId' })
-  public host!: string;
 
   @ValidateNested()
   @Type(() => LocationDto)

@@ -12,6 +12,10 @@ import type { DatabaseClientInterface } from './db/db-client.interface.js';
 import { ExceptionFilter } from './rest/exception-filter/exception-filter.js';
 import type { ExceptionFilterInterface } from './rest/exception-filter/exception-filter.interface.js';
 import type { ControllerInterface } from './rest/controller/controller.interface.js';
+import { AuthenticateMiddleware } from './rest/middleware/authenticate.middleware.js';
+import type { MiddlewareInterface } from './rest/middleware/middleware.interface.js';
+import { TokenService } from './modules/auth/token.service.js';
+import type { TokenServiceInterface } from './modules/auth/token-service.interface.js';
 import { UserModel } from './modules/user/user.model.js';
 import type { UserDocument } from './modules/user/user.model.js';
 import { UserService } from './modules/user/user.service.js';
@@ -37,6 +41,8 @@ container.bind<ConfigInterface<RestConfig>>(RestServiceToken.Config).to(ConfigSe
 container.bind<Application>(RestServiceToken.Application).to(Application).inSingletonScope();
 container.bind<DatabaseClientInterface>(RestServiceToken.DatabaseClient).to(MongoClient).inSingletonScope();
 container.bind<ExceptionFilterInterface>(RestServiceToken.ExceptionFilter).to(ExceptionFilter).inSingletonScope();
+container.bind<TokenServiceInterface>(RestServiceToken.TokenService).to(TokenService).inSingletonScope();
+container.bind<MiddlewareInterface>(RestServiceToken.AuthenticateMiddleware).to(AuthenticateMiddleware).inSingletonScope();
 
 container.bind<mongoose.Model<UserDocument>>(RestServiceToken.UserModel).toConstantValue(UserModel);
 container.bind<UserServiceInterface>(RestServiceToken.UserService).to(UserService).inSingletonScope();
