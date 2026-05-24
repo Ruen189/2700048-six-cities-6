@@ -2,6 +2,7 @@ import { resolve } from 'node:path';
 
 import express from 'express';
 import type { Express } from 'express';
+import cors from 'cors';
 import { inject, injectable } from 'inversify';
 
 import { RestServiceToken } from './rest-service.tokens.js';
@@ -57,11 +58,19 @@ export class Application {
 
   private initMiddleware(): void {
     this.logger.info('Initializing application middleware');
+
+    this.server.use(cors());
+    this.logger.info('CORS enabled for all origins');
+
     this.server.use(express.json());
 
     const uploadDir = resolve(process.cwd(), this.config.get('uploadDirectory'));
     this.server.use('/upload', express.static(uploadDir));
-    this.logger.info(`Serving static files from ${uploadDir} at /upload`);
+    this.logger.info(`Serving user-uploaded files from ${uploadDir} at /upload`);
+
+    const staticDir = resolve(process.cwd(), 'static');
+    this.server.use('/static', express.static(staticDir));
+    this.logger.info(`Serving bundled static assets from ${staticDir} at /static`);
 
     this.server.use(asyncHandler(this.authenticateMiddleware.execute.bind(this.authenticateMiddleware)));
     this.logger.info('Authenticate middleware registered (decodes Bearer tokens)');
