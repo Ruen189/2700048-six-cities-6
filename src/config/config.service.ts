@@ -59,9 +59,28 @@ const configSchema: Schema<RestConfig> = {
     env: 'UPLOAD_DIRECTORY',
     default: 'upload',
   },
+  jwtSecret: {
+    doc: 'Secret key used to sign JWT access tokens',
+    format: String,
+    env: 'JWT_SECRET',
+    default: 'change-me',
+    sensitive: true,
+  },
+  jwtExpiresIn: {
+    doc: 'JWT access token lifetime (e.g. 2h, 7d)',
+    format: String,
+    env: 'JWT_EXPIRES_IN',
+    default: '2h',
+  },
 };
 
-const REQUIRED_ENVIRONMENT_VARIABLES = ['PORT', 'DB_HOST', 'SALT', 'UPLOAD_DIRECTORY'] as const;
+const REQUIRED_ENVIRONMENT_VARIABLES = [
+  'PORT',
+  'DB_HOST',
+  'SALT',
+  'UPLOAD_DIRECTORY',
+  'JWT_SECRET',
+] as const;
 
 @injectable()
 export class ConfigService implements ConfigInterface<RestConfig> {

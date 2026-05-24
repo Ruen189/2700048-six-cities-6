@@ -1,119 +1,139 @@
-### Six Cities REST API — sample requests
-###
-### Run server first: `npm start` (or `npm run start:dev`).
-### These requests use VS Code / IDE "REST Client" extension syntax. Adjust @host as needed.
-
+### REST Client examples for six-cities
 @host = http://localhost:3000
 
-### --------------- USERS ---------------
+### --- Auth ---
 
-### Register a new user
-# @name register
+### Register
 POST {{host}}/users/register
 Content-Type: application/json
 
 {
-  "name": "Alex",
-  "email": "alex+demo@example.com",
+  "name": "Test User",
+  "email": "test-user@example.com",
   "password": "qwerty1",
   "type": "pro"
 }
 
-### Login (not implemented yet — returns 501)
+### Login (capture token from response.body.token)
+# @name login
 POST {{host}}/users/login
 Content-Type: application/json
 
 {
-  "email": "alex+demo@example.com",
+  "email": "test-user@example.com",
   "password": "qwerty1"
 }
 
-### Upload an avatar (multipart/form-data)
-### Replace :userId with a real id from the register response above ({{register.response.body.id}}).
-### `< ./mocks/avatar-sample.png` reads the file body from disk (REST Client syntax).
-POST {{host}}/users/{{register.response.body.id}}/avatar
-Content-Type: multipart/form-data; boundary=----SixCitiesBoundary
+### Convenience variable that grabs the token from the login response above.
+@token = {{login.response.body.token}}
 
-------SixCitiesBoundary
-Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+### Check authentication (returns current user profile)
+GET {{host}}/users/login
+Authorization: Bearer {{token}}
+
+### Logout (JWT: client must additionally discard the token)
+DELETE {{host}}/users/logout
+Authorization: Bearer {{token}}
+
+### Upload avatar for the authenticated user
+POST {{host}}/users/avatar
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=----boundary
+Content-Disposition: form-data
+
+------boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar-sample.png"
 Content-Type: image/png
 
 < ./mocks/avatar-sample.png
-------SixCitiesBoundary--
-
-### Fetch the uploaded avatar (static)
-GET {{host}}/upload/<replace-with-returned-filename>
+------boundary--
 
 
-### --------------- OFFERS ---------------
+### --- Offers ---
 
-### List offers
+### List all offers (anonymous → isFavorite always false)
 GET {{host}}/offers
 
-### List offers with custom limit
-GET {{host}}/offers?limit=5
+### List as authenticated user → isFavorite respects user's favorites
+GET {{host}}/offers
+Authorization: Bearer {{token}}
 
-### Premium offers in Paris
-GET {{host}}/offers/premium/Paris
+### Premium offers in a city
+GET {{host}}/offers/premium/Amsterdam
 
 ### Get one offer
-GET {{host}}/offers/{{register.response.body.id}}
+GET {{host}}/offers/REPLACE_WITH_OFFER_ID
 
-### Create a new offer
+### Create an offer (host is taken from the token, never from the body)
+# @name newOffer
 POST {{host}}/offers
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "title": "Beautiful loft in Paris center",
-  "description": "Spacious renovated loft in the heart of Paris with great views.",
+  "title": "Beautiful apartment in the heart of Paris",
+  "description": "Spacious and renovated apartment with a great view on the river.",
   "city": "Paris",
-  "previewImage": "img/loft-01.jpg",
+  "previewImage": "img/apartment-01.jpg",
   "images": [
     "img/01.jpg", "img/02.jpg", "img/03.jpg",
     "img/04.jpg", "img/05.jpg", "img/06.jpg"
   ],
-  "isPremium": false,
+  "isPremium": true,
   "type": "apartment",
   "bedrooms": 2,
   "maxAdults": 4,
   "price": 300,
   "goods": ["Breakfast", "Towels"],
-  "host": "{{register.response.body.id}}",
-  "location": { "latitude": 48.85661, "longitude": 2.351499 }
+  "location": {
+    "latitude": 48.85661,
+    "longitude": 2.351499
+  }
 }
 
-### Update an offer
-PATCH {{host}}/offers/<offerId>
+@createdOfferId = {{newOffer.response.body.id}}
+
+### Update an offer (only the owner can do it)
+PATCH {{host}}/offers/{{createdOfferId}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "price": 350,
-  "isPremium": true
+  "title": "Updated title",
+  "price": 280
 }
 
-### Delete an offer
-DELETE {{host}}/offers/<offerId>
+### Delete an offer (only the owner can do it)
+DELETE {{host}}/offers/{{createdOfferId}}
+Authorization: Bearer {{token}}
 
 
-### --------------- COMMENTS ---------------
+### --- Comments ---
 
-### List comments for an offer
-GET {{host}}/offers/<offerId>/comments
+### Comments for an offer (public)
+GET {{host}}/offers/REPLACE_WITH_OFFER_ID/comments
 
-### Create a comment
-POST {{host}}/offers/<offerId>/comments
+### Post a comment (author is taken from the token)
+POST {{host}}/offers/REPLACE_WITH_OFFER_ID/comments
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "text": "Great apartment, really enjoyed my stay!",
-  "rating": 5,
-  "author": "{{register.response.body.id}}"
+  "text": "Great place, would book again!",
+  "rating": 5
 }
 
 
-### --------------- FAVORITES (not implemented yet, 501) ---------------
+### --- Favorites (all require auth) ---
+
+### List my favorites
 GET {{host}}/favorites
+Authorization: Bearer {{token}}
 
-POST {{host}}/favorites/<offerId>
+### Add to favorites
+POST {{host}}/favorites/REPLACE_WITH_OFFER_ID
+Authorization: Bearer {{token}}
 
-DELETE {{host}}/favorites/<offerId>
+### Remove from favorites
+DELETE {{host}}/favorites/REPLACE_WITH_OFFER_ID
+Authorization: Bearer {{token}}

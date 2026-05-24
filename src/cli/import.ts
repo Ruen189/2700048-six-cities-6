@@ -7,6 +7,9 @@ import chalk from 'chalk';
 import { parseOfferFromTSVLine } from './tsv.js';
 import { UserModel } from '../modules/user/user.model.js';
 import { OfferModel } from '../modules/offer/offer.model.js';
+import { hashPassword } from '../modules/user/password.helper.js';
+
+const IMPORT_SALT = process.env.SALT ?? 'salt';
 
 export async function importFromTSV(filePath: string, dbUri: string): Promise<void> {
   const absolutePath = resolve(process.cwd(), filePath);
@@ -43,7 +46,7 @@ export async function importFromTSV(filePath: string, dbUri: string): Promise<vo
             name: parsed.host.name,
             email: parsed.host.email,
             avatarUrl: parsed.host.avatarUrl,
-            password: parsed.authorPassword,
+            password: hashPassword(parsed.authorPassword, IMPORT_SALT),
             type: parsed.host.type,
           },
         },

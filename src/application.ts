@@ -12,6 +12,8 @@ import type { DatabaseClientInterface } from './db/db-client.interface.js';
 import { getMongoURI } from './db/db-uri.helper.js';
 import type { ControllerInterface } from './rest/controller/controller.interface.js';
 import type { ExceptionFilterInterface } from './rest/exception-filter/exception-filter.interface.js';
+import type { MiddlewareInterface } from './rest/middleware/middleware.interface.js';
+import asyncHandler from 'express-async-handler';
 
 @injectable()
 export class Application {
@@ -22,6 +24,7 @@ export class Application {
     @inject(RestServiceToken.Config) private readonly config: ConfigInterface<RestConfig>,
     @inject(RestServiceToken.DatabaseClient) private readonly dbClient: DatabaseClientInterface,
     @inject(RestServiceToken.ExceptionFilter) private readonly exceptionFilter: ExceptionFilterInterface,
+    @inject(RestServiceToken.AuthenticateMiddleware) private readonly authenticateMiddleware: MiddlewareInterface,
     @inject(RestServiceToken.UserController) private readonly userController: ControllerInterface,
     @inject(RestServiceToken.OfferController) private readonly offerController: ControllerInterface,
     @inject(RestServiceToken.CommentController) private readonly commentController: ControllerInterface,
@@ -59,6 +62,9 @@ export class Application {
     const uploadDir = resolve(process.cwd(), this.config.get('uploadDirectory'));
     this.server.use('/upload', express.static(uploadDir));
     this.logger.info(`Serving static files from ${uploadDir} at /upload`);
+
+    this.server.use(asyncHandler(this.authenticateMiddleware.execute.bind(this.authenticateMiddleware)));
+    this.logger.info('Authenticate middleware registered (decodes Bearer tokens)');
   }
 
   private initRoutes(): void {

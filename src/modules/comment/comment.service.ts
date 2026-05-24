@@ -18,16 +18,21 @@ export class CommentService implements CommentServiceInterface {
     @inject(RestServiceToken.OfferService) private readonly offerService: OfferServiceInterface
   ) {}
 
-  public async create(dto: CreateCommentDto, offerId: string): Promise<CommentDocument> {
+  public async create(
+    dto: CreateCommentDto,
+    offerId: string,
+    authorId: string
+  ): Promise<CommentDocument> {
     const comment = await this.commentModel.create({
       ...dto,
+      author: authorId,
       offerId,
       postDate: new Date(),
     });
 
     await this.offerService.updateRatingAndCommentCount(offerId);
 
-    this.logger.info('New comment created', { offerId });
+    this.logger.info('New comment created', { offerId, authorId });
     return comment.populate('author');
   }
 
