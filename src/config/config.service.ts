@@ -53,9 +53,15 @@ const configSchema: Schema<RestConfig> = {
     default: 'salt',
     sensitive: true,
   },
+  uploadDirectory: {
+    doc: 'Directory for user-uploaded files (avatars, etc.)',
+    format: String,
+    env: 'UPLOAD_DIRECTORY',
+    default: 'upload',
+  },
 };
 
-const REQUIRED_ENVIRONMENT_VARIABLES = ['PORT', 'DB_HOST', 'SALT'] as const;
+const REQUIRED_ENVIRONMENT_VARIABLES = ['PORT', 'DB_HOST', 'SALT', 'UPLOAD_DIRECTORY'] as const;
 
 @injectable()
 export class ConfigService implements ConfigInterface<RestConfig> {

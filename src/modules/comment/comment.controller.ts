@@ -1,10 +1,9 @@
 import { inject, injectable } from 'inversify';
-import { StatusCodes } from 'http-status-codes';
 import type { Request, Response } from 'express';
 
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
-import { HttpError } from '../../rest/errors/http-error.js';
+import { DocumentExistsMiddleware } from '../../rest/middleware/document-exists.middleware.js';
 import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
 import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
@@ -32,7 +31,10 @@ export class CommentController extends Controller {
       path: '/:offerId/comments',
       method: HttpMethod.Get,
       handler: this.index,
-      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
+      ],
     });
     this.addRoute({
       path: '/:offerId/comments',
@@ -41,18 +43,13 @@ export class CommentController extends Controller {
       middlewares: [
         new ValidateObjectIdMiddleware('offerId'),
         new ValidateDtoMiddleware(CreateCommentDto),
+        new DocumentExistsMiddleware(this.offerService, 'Offer', 'offerId'),
       ],
     });
   }
 
   public async index(req: Request<OfferIdParam>, res: Response): Promise<void> {
-    const { offerId } = req.params;
-
-    if (!(await this.offerService.exists(offerId))) {
-      throw new HttpError(StatusCodes.NOT_FOUND, `Offer with id «${offerId}» not found.`);
-    }
-
-    const comments = await this.commentService.findByOfferId(offerId);
+    const comments = await this.commentService.findByOfferId(req.params.offerId);
     this.ok(res, fillDTO(CommentRdo, comments.map((comment) => comment.toObject())));
   }
 
@@ -60,13 +57,7 @@ export class CommentController extends Controller {
     req: Request<OfferIdParam, Record<string, unknown>, CreateCommentDto>,
     res: Response
   ): Promise<void> {
-    const { offerId } = req.params;
-
-    if (!(await this.offerService.exists(offerId))) {
-      throw new HttpError(StatusCodes.NOT_FOUND, `Offer with id «${offerId}» not found.`);
-    }
-
-    const comment = await this.commentService.create(req.body, offerId);
+    const comment = await this.commentService.create(req.body, req.params.offerId);
     this.created(res, fillDTO(CommentRdo, comment.toObject()));
   }
 }

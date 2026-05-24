@@ -5,20 +5,29 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { DocumentExistsMiddleware } from '../../rest/middleware/document-exists.middleware.js';
+import { UploadFileMiddleware } from '../../rest/middleware/upload-file.middleware.js';
 import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
+import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
+import type { ConfigInterface } from '../../config/config.interface.js';
+import type { RestConfig } from '../../config/rest.config.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { UserServiceInterface } from './user-service.interface.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { LoginUserDto } from './dto/login-user.dto.js';
 import { UserRdo } from './rdo/user.rdo.js';
+import { UploadAvatarRdo } from './rdo/upload-avatar.rdo.js';
+
+type UserIdParam = { userId: string };
 
 @injectable()
 export class UserController extends Controller {
   constructor(
     @inject(RestServiceToken.Logger) logger: LoggerInterface,
-    @inject(RestServiceToken.UserService) private readonly userService: UserServiceInterface
+    @inject(RestServiceToken.UserService) private readonly userService: UserServiceInterface,
+    @inject(RestServiceToken.Config) private readonly config: ConfigInterface<RestConfig>
   ) {
     super(logger);
 
@@ -38,6 +47,16 @@ export class UserController extends Controller {
     });
     this.addRoute({ path: '/login', method: HttpMethod.Get, handler: this.checkAuthenticate });
     this.addRoute({ path: '/logout', method: HttpMethod.Delete, handler: this.logout });
+    this.addRoute({
+      path: '/:userId/avatar',
+      method: HttpMethod.Post,
+      handler: this.uploadAvatar,
+      middlewares: [
+        new ValidateObjectIdMiddleware('userId'),
+        new UploadFileMiddleware(this.config.get('uploadDirectory'), 'avatar'),
+        new DocumentExistsMiddleware(this.userService, 'User', 'userId'),
+      ],
+    });
   }
 
   public async create(
@@ -81,5 +100,19 @@ export class UserController extends Controller {
 
   public async logout(_req: Request, res: Response): Promise<void> {
     this.noContent(res);
+  }
+
+  public async uploadAvatar(req: Request<UserIdParam>, res: Response): Promise<void> {
+    const { userId } = req.params;
+    const file = req.file;
+
+    if (!file) {
+      throw new HttpError(StatusCodes.BAD_REQUEST, 'Avatar file is required.');
+    }
+
+    const avatarPath = `/upload/${file.filename}`;
+    await this.userService.setAvatarPath(userId, avatarPath);
+
+    this.created(res, fillDTO(UploadAvatarRdo, { avatarUrl: avatarPath }));
   }
 }

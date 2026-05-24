@@ -6,5 +6,6 @@ export type RestConfig = {
   dbUser: string;
   dbPassword: string;
   salt: string;
+  uploadDirectory: string;
 };
 

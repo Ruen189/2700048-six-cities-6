@@ -1,0 +1,119 @@
+### Six Cities REST API — sample requests
+###
+### Run server first: `npm start` (or `npm run start:dev`).
+### These requests use VS Code / IDE "REST Client" extension syntax. Adjust @host as needed.
+
+@host = http://localhost:3000
+
+### --------------- USERS ---------------
+
+### Register a new user
+# @name register
+POST {{host}}/users/register
+Content-Type: application/json
+
+{
+  "name": "Alex",
+  "email": "alex+demo@example.com",
+  "password": "qwerty1",
+  "type": "pro"
+}
+
+### Login (not implemented yet — returns 501)
+POST {{host}}/users/login
+Content-Type: application/json
+
+{
+  "email": "alex+demo@example.com",
+  "password": "qwerty1"
+}
+
+### Upload an avatar (multipart/form-data)
+### Replace :userId with a real id from the register response above ({{register.response.body.id}}).
+### `< ./mocks/avatar-sample.png` reads the file body from disk (REST Client syntax).
+POST {{host}}/users/{{register.response.body.id}}/avatar
+Content-Type: multipart/form-data; boundary=----SixCitiesBoundary
+
+------SixCitiesBoundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ./mocks/avatar-sample.png
+------SixCitiesBoundary--
+
+### Fetch the uploaded avatar (static)
+GET {{host}}/upload/<replace-with-returned-filename>
+
+
+### --------------- OFFERS ---------------
+
+### List offers
+GET {{host}}/offers
+
+### List offers with custom limit
+GET {{host}}/offers?limit=5
+
+### Premium offers in Paris
+GET {{host}}/offers/premium/Paris
+
+### Get one offer
+GET {{host}}/offers/{{register.response.body.id}}
+
+### Create a new offer
+POST {{host}}/offers
+Content-Type: application/json
+
+{
+  "title": "Beautiful loft in Paris center",
+  "description": "Spacious renovated loft in the heart of Paris with great views.",
+  "city": "Paris",
+  "previewImage": "img/loft-01.jpg",
+  "images": [
+    "img/01.jpg", "img/02.jpg", "img/03.jpg",
+    "img/04.jpg", "img/05.jpg", "img/06.jpg"
+  ],
+  "isPremium": false,
+  "type": "apartment",
+  "bedrooms": 2,
+  "maxAdults": 4,
+  "price": 300,
+  "goods": ["Breakfast", "Towels"],
+  "host": "{{register.response.body.id}}",
+  "location": { "latitude": 48.85661, "longitude": 2.351499 }
+}
+
+### Update an offer
+PATCH {{host}}/offers/<offerId>
+Content-Type: application/json
+
+{
+  "price": 350,
+  "isPremium": true
+}
+
+### Delete an offer
+DELETE {{host}}/offers/<offerId>
+
+
+### --------------- COMMENTS ---------------
+
+### List comments for an offer
+GET {{host}}/offers/<offerId>/comments
+
+### Create a comment
+POST {{host}}/offers/<offerId>/comments
+Content-Type: application/json
+
+{
+  "text": "Great apartment, really enjoyed my stay!",
+  "rating": 5,
+  "author": "{{register.response.body.id}}"
+}
+
+
+### --------------- FAVORITES (not implemented yet, 501) ---------------
+GET {{host}}/favorites
+
+POST {{host}}/favorites/<offerId>
+
+DELETE {{host}}/favorites/<offerId>

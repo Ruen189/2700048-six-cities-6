@@ -6,6 +6,8 @@ export interface UserServiceInterface {
   findById(id: string): Promise<UserDocument | null>;
   findByEmail(email: string): Promise<UserDocument | null>;
   findOrCreate(dto: CreateUserDto): Promise<UserDocument>;
+  exists(documentId: string): Promise<boolean>;
+  setAvatarPath(userId: string, avatarPath: string): Promise<UserDocument | null>;
   addToFavorites(userId: string, offerId: string): Promise<UserDocument | null>;
   removeFromFavorites(userId: string, offerId: string): Promise<UserDocument | null>;
   findFavorites(userId: string): Promise<string[]>;

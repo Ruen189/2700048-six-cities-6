@@ -12,3 +12,4 @@ coverage
 specification.txt
 .env
 /.42c/
+/upload/
