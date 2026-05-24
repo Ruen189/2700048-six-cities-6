@@ -36,6 +36,17 @@ export class UserService implements UserServiceInterface {
     return this.create(dto);
   }
 
+  public async exists(documentId: string): Promise<boolean> {
+    const result = await this.userModel.exists({ _id: documentId });
+    return result !== null;
+  }
+
+  public async setAvatarPath(userId: string, avatarPath: string): Promise<UserDocument | null> {
+    return this.userModel
+      .findByIdAndUpdate(userId, { avatarUrl: avatarPath }, { new: true })
+      .exec();
+  }
+
   public async addToFavorites(userId: string, offerId: string): Promise<UserDocument | null> {
     return this.userModel
       .findByIdAndUpdate(

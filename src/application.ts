@@ -1,3 +1,5 @@
+import { resolve } from 'node:path';
+
 import express from 'express';
 import type { Express } from 'express';
 import { inject, injectable } from 'inversify';
@@ -53,6 +55,10 @@ export class Application {
   private initMiddleware(): void {
     this.logger.info('Initializing application middleware');
     this.server.use(express.json());
+
+    const uploadDir = resolve(process.cwd(), this.config.get('uploadDirectory'));
+    this.server.use('/upload', express.static(uploadDir));
+    this.logger.info(`Serving static files from ${uploadDir} at /upload`);
   }
 
   private initRoutes(): void {
@@ -71,8 +77,8 @@ export class Application {
   private async initServer(): Promise<void> {
     const port = this.config.get('port');
 
-    await new Promise<void>((resolve) => {
-      this.server.listen(port, () => resolve());
+    await new Promise<void>((resolveListen) => {
+      this.server.listen(port, () => resolveListen());
     });
 
     this.logger.info(`Server started on http://localhost:${port}`);
