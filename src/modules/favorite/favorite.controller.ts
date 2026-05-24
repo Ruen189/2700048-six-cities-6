@@ -5,6 +5,7 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { OfferServiceInterface } from '../offer/offer-service.interface.js';
@@ -22,8 +23,18 @@ export class FavoriteController extends Controller {
     this.logger.info('Register routes for FavoriteController');
 
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Post, handler: this.add });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Delete, handler: this.remove });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.delete,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+    });
   }
 
   public async index(_req: Request, _res: Response): Promise<void> {
@@ -33,7 +44,7 @@ export class FavoriteController extends Controller {
     );
   }
 
-  public async add(req: Request<OfferIdParam>, _res: Response): Promise<void> {
+  public async create(req: Request<OfferIdParam>, _res: Response): Promise<void> {
     const { offerId } = req.params;
 
     if (!(await this.offerService.exists(offerId))) {
@@ -46,7 +57,7 @@ export class FavoriteController extends Controller {
     );
   }
 
-  public async remove(req: Request<OfferIdParam>, _res: Response): Promise<void> {
+  public async delete(req: Request<OfferIdParam>, _res: Response): Promise<void> {
     const { offerId } = req.params;
 
     if (!(await this.offerService.exists(offerId))) {

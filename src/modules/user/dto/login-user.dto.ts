@@ -1,4 +1,9 @@
-export type LoginUserDto = {
-  email: string;
-  password: string;
-};
+import { IsEmail, IsString } from 'class-validator';
+
+export class LoginUserDto {
+  @IsEmail({}, { message: 'email must be a valid email address' })
+  public email!: string;
+
+  @IsString({ message: 'password must be a string' })
+  public password!: string;
+}

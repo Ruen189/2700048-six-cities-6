@@ -5,13 +5,15 @@ import type { Request, Response } from 'express';
 import { Controller } from '../../rest/controller/controller.abstract.js';
 import { HttpMethod } from '../../rest/types/http-method.enum.js';
 import { HttpError } from '../../rest/errors/http-error.js';
+import { ValidateDtoMiddleware } from '../../rest/middleware/validate-dto.middleware.js';
+import { ValidateObjectIdMiddleware } from '../../rest/middleware/validate-objectid.middleware.js';
 import { fillDTO } from '../../rest/helpers/fill-dto.js';
 import { RestServiceToken } from '../../rest-service.tokens.js';
 import type { LoggerInterface } from '../../logger/logger.interface.js';
 import type { OfferServiceInterface } from './offer-service.interface.js';
 import type { CommentServiceInterface } from '../comment/comment-service.interface.js';
-import type { CreateOfferDto } from './dto/create-offer.dto.js';
-import type { UpdateOfferDto } from './dto/update-offer.dto.js';
+import { CreateOfferDto } from './dto/create-offer.dto.js';
+import { UpdateOfferDto } from './dto/update-offer.dto.js';
 import { OfferRdo } from './rdo/offer.rdo.js';
 import { OfferShortRdo } from './rdo/offer-short.rdo.js';
 
@@ -31,10 +33,33 @@ export class OfferController extends Controller {
     this.logger.info('Register routes for OfferController');
 
     this.addRoute({ path: '/', method: HttpMethod.Get, handler: this.index });
-    this.addRoute({ path: '/', method: HttpMethod.Post, handler: this.create });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Get, handler: this.show });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Patch, handler: this.update });
-    this.addRoute({ path: '/:offerId', method: HttpMethod.Delete, handler: this.delete });
+    this.addRoute({
+      path: '/',
+      method: HttpMethod.Post,
+      handler: this.create,
+      middlewares: [new ValidateDtoMiddleware(CreateOfferDto)],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Get,
+      handler: this.show,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Patch,
+      handler: this.update,
+      middlewares: [
+        new ValidateObjectIdMiddleware('offerId'),
+        new ValidateDtoMiddleware(UpdateOfferDto),
+      ],
+    });
+    this.addRoute({
+      path: '/:offerId',
+      method: HttpMethod.Delete,
+      handler: this.delete,
+      middlewares: [new ValidateObjectIdMiddleware('offerId')],
+    });
     this.addRoute({ path: '/premium/:city', method: HttpMethod.Get, handler: this.premium });
   }
 

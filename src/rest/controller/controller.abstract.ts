@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { Response } from 'express';
+import type { RequestHandler, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { injectable } from 'inversify';
 import { StatusCodes } from 'http-status-codes';
@@ -21,8 +21,13 @@ export abstract class Controller implements ControllerInterface {
   }
 
   public addRoute(route: RouteInterface): void {
-    const wrapper = asyncHandler(route.handler.bind(this));
-    this._router[route.method](route.path, wrapper);
+    const middlewares: RequestHandler[] = (route.middlewares ?? []).map((middleware) =>
+      asyncHandler(middleware.execute.bind(middleware))
+    );
+
+    const handler = asyncHandler(route.handler.bind(this));
+
+    this._router[route.method](route.path, ...middlewares, handler);
     this.logger.info(`Route registered: ${route.method.toUpperCase()} ${route.path}`);
   }
 
